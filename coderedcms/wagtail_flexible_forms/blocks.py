@@ -120,7 +120,7 @@ class NumberFieldBlock(OptionalFormFieldBlock):
 
 
 class CheckboxFieldBlock(FormFieldBlock):
-    default_value = CheckFieldBlock(required=False)
+    check_box = CheckFieldBlock(required=False)
 
     field_class = forms.BooleanField
 
