@@ -810,8 +810,7 @@ class StreamFormMixin:
                 (
                     ("status", _("Status")),
                     ("user", _("User")),
-                    ("submit_time", _("First modification")),
-                    ("last_modification", _("Last modification")),
+                    ("submit_time", _("Submitted")),
                 )
             )
         data_fields.extend(
