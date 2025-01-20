@@ -9,12 +9,25 @@ from wagtail.blocks import CharBlock
 from wagtail.blocks import ChoiceBlock
 from wagtail.blocks import DateBlock
 from wagtail.blocks import DateTimeBlock
+from wagtail.blocks import IntegerBlock
 from wagtail.blocks import ListBlock
 from wagtail.blocks import RichTextBlock
 from wagtail.blocks import StreamBlock
 from wagtail.blocks import StructBlock
 from wagtail.blocks import TextBlock
 from wagtail.blocks import TimeBlock
+
+
+class CheckFieldBlock(StructBlock):
+
+    default_value = BooleanBlock(required=False)
+    weight = IntegerBlock(label=_("Weight"), min_value=0)
+
+
+class ChoiceFieldBlock(StructBlock):
+    
+    choice = CharBlock(label=_("Choice"))
+    weight = IntegerBlock(label=_("Weight"), min_value=0)
 
 
 class FormFieldBlock(StructBlock):
@@ -107,7 +120,7 @@ class NumberFieldBlock(OptionalFormFieldBlock):
 
 
 class CheckboxFieldBlock(FormFieldBlock):
-    default_value = BooleanBlock(required=False)
+    default_value = CheckFieldBlock(required=False)
 
     field_class = forms.BooleanField
 
@@ -115,9 +128,22 @@ class CheckboxFieldBlock(FormFieldBlock):
         label = _("Checkbox field")
         icon = "tick-inverse"
 
+    def get_field_kwargs(self, struct_value):
+        kwargs = super(CheckboxFieldBlock, self).get_field_kwargs(
+            struct_value
+        )
+        if "check_box" in struct_value:
+            if "default_value" in struct_value["check_box"]:
+                kwargs["initial"] = struct_value["check_box"]["default_value"]
+                form_widget = self.get_widget(struct_value)
+            if form_widget is not None:
+                kwargs["widget"] = form_widget
+
+        return kwargs
+
 
 class RadioButtonsFieldBlock(OptionalFormFieldBlock):
-    choices = ListBlock(CharBlock(label=_("Choice")))
+    choices = ListBlock(ChoiceFieldBlock(label=_("Choice")))
 
     field_class = forms.ChoiceField
     widget = forms.RadioSelect
@@ -127,10 +153,13 @@ class RadioButtonsFieldBlock(OptionalFormFieldBlock):
         icon = "radio-empty"
 
     def get_field_kwargs(self, struct_value):
-        kwargs = super().get_field_kwargs(struct_value)
+        kwargs = super(RadioButtonsFieldBlock, self).get_field_kwargs(
+            struct_value
+        )
         kwargs["choices"] = [
-            (choice, choice) for choice in struct_value["choices"]
+            (choice["choice"], choice["choice"]) for choice in struct_value["choices"]
         ]
+
         return kwargs
 
 
@@ -142,13 +171,19 @@ class DropdownFieldBlock(RadioButtonsFieldBlock):
         icon = "arrow-down-big"
 
     def get_field_kwargs(self, struct_value):
-        kwargs = super(DropdownFieldBlock, self).get_field_kwargs(struct_value)
+        kwargs = super(DropdownFieldBlock, self).get_field_kwargs(
+            struct_value
+        )
+        kwargs["choices"] = [
+            (choice["choice"], choice["choice"]) for choice in struct_value["choices"]
+        ]
         kwargs["choices"].insert(0, BLANK_CHOICE_DASH[0])
+
         return kwargs
 
 
 class CheckboxesFieldBlock(OptionalFormFieldBlock):
-    checkboxes = ListBlock(CharBlock(label=_("Checkbox")))
+    checkboxes = ListBlock(ChoiceFieldBlock(label=_("Checkbox")))
 
     field_class = forms.MultipleChoiceField
     widget = forms.CheckboxSelectMultiple
@@ -162,8 +197,9 @@ class CheckboxesFieldBlock(OptionalFormFieldBlock):
             struct_value
         )
         kwargs["choices"] = [
-            (choice, choice) for choice in struct_value["checkboxes"]
+            (choice["choice"], choice["choice"]) for choice in struct_value["checkboxes"]
         ]
+
         return kwargs
 
 
