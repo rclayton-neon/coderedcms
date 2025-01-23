@@ -1567,7 +1567,7 @@ class CoderedFormMixin(models.Model):
         self.send_mail(request, message_args)
 
     def send_mail(
-        self, resuest, message_args: dict, content_subtype: Optional[str] = None
+        self, request, message_args: dict, content_subtype: Optional[str] = None
     ):
         """
         Utility to send email messages from form submissions.
